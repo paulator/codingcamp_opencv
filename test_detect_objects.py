@@ -5,8 +5,10 @@ import os
 min_area = 500
 # lower_blue = np.array([60,35,50])
 # upper_blue = np.array([180,180,180])
-lower_blue = np.array([65, 10, 45])
-upper_blue = np.array([165, 150, 160])
+#working lower_blue = np.array([65, 10, 45])
+#working upper_blue = np.array([165, 150, 160])
+lower_blue = np.array([110, 50, 50])
+upper_blue = np.array([130, 255, 255])
 step = 5
 vis_offset = 200
 cap = cv2.VideoCapture(0, cv2.CAP_V4L)
@@ -25,19 +27,19 @@ while True:
     # Nehmen Sie ein Bild von der Kamera auf
     ret, frame = cap.read()
 
-    # Konvertieren Sie das Bild in Graustufen
+
+    # Convert the image to HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
+    # Create a binary mask for blue regions
     mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    result = cv2.bitwise_and(frame, frame, mask=mask)
-    # Führen Sie eine Schwellenwertanalyse durch, um Objekte zu isolieren
-    threshold = cv2.threshold(result, 100, 255, cv2.THRESH_BINARY)[1]
-    rgb = cv2.cvtColor(threshold, cv2.COLOR_HSV2RGB)
-    gray1 = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
 
-    # Finden Sie die Konturen der Objekte
-    contours, hierarchy = cv2.findContours(
-        gray1, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Apply morphological operations
+    kernel = np.ones((5,5), np.uint8)
+    mask = cv2.erode(mask, kernel, iterations=1)
+    mask = cv2.dilate(mask, kernel, iterations=1)
+
+    # Find contours
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # Filtern Sie Konturen nach Größe
     filtered_contours = []
@@ -57,7 +59,7 @@ while True:
     # Zeigen Sie das Bild mit den umrandeten Objekten an
     cv2.imshow('frame', frame)
     cv2.imshow('hsv', hsv)
-    cv2.imshow('result', result)
+    #cv2.imshow('result', result)
 
     # Wait for a key press
     key = cv2.waitKey(1) & 0xFF
